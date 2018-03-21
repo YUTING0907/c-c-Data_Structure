@@ -64,7 +64,20 @@ int main()
 输出样例2：
 0
 
-思考：这题考察的是二分查找算法，写一个二分查找函数就算完事儿了
+思考：这题考察的是二分查找算法，写一个二分查找函数就算完事儿了。
+访问结构体的成员语法（->和.）
+struct book{
+    char title[MaxTitle];
+    char author[AXAUTL];
+    float value;
+}library;
+定义一个book类
+struct book library2;
+访问该类结构体成员library2.value.
+使用结构体指针访问：
+struct book * it;
+it = & library2;
+it->value;
 
 代码:
 Position BinarySearch( List L, ElementType X ){
