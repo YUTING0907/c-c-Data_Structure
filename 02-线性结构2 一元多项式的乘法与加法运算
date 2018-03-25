@@ -1,0 +1,170 @@
+02-线性结构2 一元多项式的乘法与加法运算（20 分）
+设计函数分别求两个一元多项式的乘积与和。
+
+输入格式:
+
+输入分2行，每行分别先给出多项式非零项的个数，再以指数递降方式输入一个多项式非零项系数和指数（绝对值均为不超过1000的整数）。数字间以空格分隔。
+
+输出格式:
+
+输出分2行，分别以指数递降方式输出乘积多项式以及和多项式非零项的系数和指数。数字间以空格分隔，但结尾不能有多余空格。零多项式应输出0 0。
+
+输入样例:
+
+4 3 4 -5 2  6 1  -2 0
+3 5 20  -7 4  3 1
+输出样例:
+
+15 24 -25 22 30 21 -10 20 -21 8 35 6 -33 5 14 4 -15 3 18 2 -6 1
+5 20 -4 4 -5 2 9 1 -2 0
+
+思考：用链表实现
+
+代码：
+#include <cstdio>
+#include <cstdlib>
+#include <algorithm>
+using namespace std;
+
+typedef struct Node* Polynomial;
+struct Node{
+	int coef;//系数 
+	int exp;//指数 
+	Polynomial link;
+};
+
+//增加新结点 
+void Attach(int c,int e,Polynomial *pRear){//当前最后一个指针的位置 Polynomial 
+	Polynomial p;
+	p = (Polynomial)malloc(sizeof(struct Node));//申请一个节点
+	p->coef = c;//对新节点赋值
+	p->exp = e;
+	p->link = NULL;
+	(*pRear)->link = p;
+	*pRear = p;//修改pRear值 	 
+}
+
+Polynomial ReadPoly(){
+	Polynomial p,Rear,t;
+	int c,e,N;
+	scanf("%d",&N);	
+	if(!N)return NULL;
+    p =(Polynomial)malloc(sizeof(struct Node));/*链表头空结点*/
+    p->link = NULL;
+    Rear = p; /*当前链表的尾项指针*/ 
+	while(N--){
+		scanf("%d %d",&c,&e);
+		Attach(c,e,&Rear);//通过指针传递的方式，让Rear能在函数中被改变.	
+	}				
+	t = p;p=p->link;free(t);/*删掉生成的空结点*/
+	return p;	
+}
+
+Polynomial Add(Polynomial P1,Polynomial P2){
+	if(!P1)return P2;
+	if(!P2)return P1; 
+	Polynomial P,t1,t2,Rear,t;
+	t1=P1;t2==P2;
+	P = (Polynomial)malloc(sizeof(struct Node)); 
+	P->link=NULL;
+	Rear = P; /*当前处理结果多项式的尾巴*/
+	while(t1&&t2){
+		if(t1->exp==t2->exp){
+			int sum = t1->coef+t2->coef;
+			if(sum) Attach(sum,t1->exp,&Rear); 
+			t1 = t1->link;
+			t2 = t2->link; 
+		}
+		else if(t1->exp > t2->exp){
+			Attach(t1->coef,t1->exp,&Rear);
+			t1 = t1->link;
+		}else{
+			Attach(t2->coef,t2->exp,&Rear);
+			t2 = t2->link;			
+		}
+	}
+	while(t1){
+		Attach(t1->coef,t1->exp,&Rear);
+		t1 = t1->link;
+	}
+	while(t2){
+		Attach(t2->coef,t2->exp,&Rear);
+		t2 = t2->link;
+	}	
+	//Rear->link = t1?t1:t2;
+	t = P;P = P->link;free(t);//删除无用的头结点 
+	return P;
+}
+
+Polynomial Mult(Polynomial P1,Polynomial P2){
+	if(!P1||!P2)return NULL;
+	Polynomial t1,t2,p,Rear,t;
+	t1 = P1;
+	p = (Polynomial)malloc(sizeof(struct Node));
+	p->link = NULL;
+	Rear = p;
+	
+	while(t1){
+		t2=P2;
+		while(t2){
+			Attach(t1->coef*t2->coef,t1->exp + t2->exp,&Rear);
+			t2 = t2->link;
+		}
+		t1 = t1->link;
+	}
+	t = p;p=p->link;free(t);
+	/*用冒泡排序把多项式按照指数降幂*/
+	t1 = p;
+	while(t1->link){
+		t2 = p;
+		while(t2->link){
+			if(t2->exp < t2->link->exp){
+				//交换位置
+				swap(t2->exp,t2->link->exp);
+				swap(t2->coef,t2->link->coef); 
+			}
+			else if(t2->exp == t2->link->exp){
+				//指数相等合并
+				t = t2->link;
+				t2->coef += t->coef;
+				t2->link = t->link;
+				free(t); 
+			}
+			t2 = t2->link;
+		}
+		t1 = t1->link;
+	}
+	return p; 
+}
+
+void PrintPoly(Polynomial p){
+	if(!p){
+		printf("0 0");
+		return;
+	}
+	bool ans = true;
+	if(p->coef){
+		printf("%d %d",p->coef,p->exp);
+		ans = false;
+	}
+	p=p->link;
+	while(p){
+		if(p->coef){
+			printf(" %d %d",p->coef,p->exp);
+			ans = false; 
+		}
+		p=p->link;
+	}
+	if(ans)printf("0 0");
+}
+int main(){
+	Polynomial P1,P2,PP,PS;
+	P1 = ReadPoly();
+	P2 = ReadPoly();
+	PP = Mult(P1,P2);
+	PrintPoly(PP);
+	printf("\n");
+	PS = Add(P1,P2);
+	PrintPoly(PS);
+	return 0;
+} 
